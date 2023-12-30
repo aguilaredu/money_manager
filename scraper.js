@@ -11,18 +11,20 @@
 // ==/UserScript==
 
 // Check if an element has display none
-function checkDisplayNone(element) {
-    // Get the computed style of the element
-    var style = window.getComputedStyle(element);
-
-    // Check if the display property is 'none'
-    if (style.display === 'none') {
-        // Return the element if display is none
-        return true;
-    } else {
-        // Return null or false if display is not none
+function isElementVisible(elem) {
+    if (!elem) return false;
+    if (elem.style.display === 'none' || window.getComputedStyle(elem).display === 'none') {
         return false;
     }
+
+    while (elem) {
+        if (elem.style.display === 'none' || window.getComputedStyle(elem).display === 'none') {
+            return false;
+        }
+        elem = elem.parentElement;
+    }
+
+    return true;
 }
 
 // Create function to get my HTML table by ID. Only the active table can be retrieved
@@ -30,10 +32,14 @@ function getTableDataById(tableIdList) {
     for (let id of tableIdList) {
         var element = document.getElementById(id);
 
-        if (element && !checkDisplayNone(element)) {
-            return element;
+        if(element)
+
+        if (element) {
+            if (isElementVisible(element)){
+                return element;
+            }
         }
-    }
+    } 
     return null
 }
 
@@ -122,7 +128,7 @@ myButton.style.cursor = 'pointer'; // Cursor pointer on hover
 document.body.appendChild(myButton);
 
 function getData(){
-    tableIds = ['creditCardRecentMovementsTable', 'creditCardStateTRX'];
+    tableIds = ['creditCardRecentMovementsTable', 'creditCardStateTRX', 'transactionTable', 'transactionTable1'];
 
     // Get the active table data 
     var tableElement = getTableDataById(tableIds);
@@ -136,6 +142,11 @@ function getData(){
 }
 
 // Add event listener to the button
-myButton.addEventListener('click', getData);
+myButton.addEventListener('click', function() {
+    // Clear any previous data if necessary
+
+    // Then fetch new data
+    getData();
+});
 
 

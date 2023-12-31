@@ -7,7 +7,7 @@
 // @match        https://*.sucursalelectronica.com/*
 // @icon         https://www.google.com/s2/favicons?sz=64&domain=tampermonkey.net
 // @grant        none
-// @require      file:///C:/Users/user/Desktop/TamperScraper/Tampermonkey/scraper.js
+// @require      file:///C:/Users/eduardo/Desktop/TamperScraper/Tampermonkey/scraper.js
 // ==/UserScript==
 
 // Check if an element has display none
@@ -43,8 +43,24 @@ function getTableDataById(tableIdList) {
     return null
 }
 
+
 function trimNewlinesAndTabs(str) {
     return str.replace(/^[\n\t]+|[\n\t]+$/g, '');
+}
+
+// Define the function with elementType and classes as parameters
+function getInnerHtmlByClass(elementType, classes) {
+  // Convert the space-delimited classes string into an array of class selectors
+  const classSelectors = classes.split(' ').map(cls => `.${cls}`).join('');
+  
+  // Use querySelectorAll to find all matching elements within the document
+  const elements = document.querySelectorAll(`${elementType}${classSelectors}`);
+  
+  // Map over the NodeList and extract the innerHTML of each element
+  const innerHtmlArray = Array.from(elements).map(element => element.innerHTML);
+  
+  // Return the array of innerHTML strings
+  return trimNewlinesAndTabs(innerHtmlArray[0]);
 }
 
 function arrayToCSV(array) {
@@ -124,6 +140,23 @@ myButton.style.borderRadius = '2px'; // Rounded corners
 myButton.style.padding = '5px 10px'; // Padding inside the button
 myButton.style.cursor = 'pointer'; // Cursor pointer on hover
 
+function getAccountName(account_name_id, cc_element_type, cc_classes){
+
+    // First try to get it by ID. This is the case for savings accounts 
+    // Get the inner HTML of the first span element inside an element matched by id
+    const parentElement = document.getElementById(account_name_id);
+    if (parentElement){
+        // Find the first span element within the parent element
+        const firstSpan = parentElement.querySelector('span');
+
+        // Return the inner HTML of the first span, or null if there is no span
+        return firstSpan ? trimNewlinesAndTabs(firstSpan.innerHTML) : null;          
+    }
+
+    // If that couldn't be found then try to find it by class
+    return getInnerHtmlByClass(cc_element_type, cc_classes)
+}
+
 // Append the button to the body
 document.body.appendChild(myButton);
 
@@ -133,11 +166,18 @@ function getData(){
     // Get the active table data 
     var tableElement = getTableDataById(tableIds);
 
+    // Get the name of the account or the card. Sadly there isn't a unique
+    // id to the element that contains the account name in credit cards
+    var account_name = getAccountName("debitAccountNameDiv", "h2", "bel-typography bel-typography-h2")
+    if (!account_name) {
+        throw new Error('Account name is null. Stopping execution.')
+    }
+
     // Convert it to a list
     var tableData = tableToList(tableElement)
 
     // Convert to CSV
-    downloadCSV(tableData, "data.csv")
+    downloadCSV(tableData, `${account_name}.csv`)
 
 }
 

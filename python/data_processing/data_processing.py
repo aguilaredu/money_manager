@@ -169,6 +169,13 @@ def combine_csv_files_by_columns(directory):
             # Read the CSV file and obtain its columns as a tuple
             try:
                 temp_df = clean_column_values(pd.read_csv(filepath, dtype=str))
+                # Get the characters before the first occurrence of "(" or "." in a variable
+                account_name = filename.split('.', 1)[0]
+                account_name = str.strip(account_name.split('(', 1)[0])
+                temp_df['account_name'] = account_name
+                currency = get_account_currency(account_name)
+                if currency != 'UNKNOWN':
+                    temp_df['currency'] = currency
 
                 columns_tuple = tuple(temp_df.columns)
                 
@@ -190,6 +197,16 @@ def combine_csv_files_by_columns(directory):
 
     return combined_dataframes_list
 
+def get_account_currency(filename):
+    # Define a function to act as a 'switch' based on account name
+    cases = {
+        'Dolares BAC 911': 'USD',
+        'Main BAC': 'HNL',
+        'Dolares BAC 021': 'USD',
+        'Debito BAC': 'HNL'
+    }
+    return cases.get(filename, 'UNKNOWN')
+
 def raise_unknown_error(object):
     raise Exception('Found a dataframe that does not have the correct column structure.')
 # Create a function that remove all whitespace characters(tabs, spaces, new lines)
@@ -207,8 +224,8 @@ def classify_and_transform_dataframe(df):
     # Define a function to act as a 'switch' based on the column list
     def switch(columns):
         cases = {
-            ('Fecha', 'Concepto', 'Monto lempiras', 'Monto dólares'): "BAC_CC",
-            ('Fecha', 'Referencia', 'Descripción', 'Débitos', 'Créditos', 'Balance'): "BAC_SAVINGS"
+            ('Fecha', 'Concepto', 'Monto lempiras', 'Monto dólares', 'account_name'): "BAC_CC",
+            ('Fecha', 'Referencia', 'Descripción', 'Débitos', 'Créditos', 'Balance', 'account_name', 'currency'): "BAC_SAVINGS"
         }
         return cases.get(tuple(columns), 'UNKNOWN')
     
@@ -245,8 +262,57 @@ def clean_dataframes():
     
     return clean_dataframes
 
+# Create a function that appends all dataframes in df list. 
+# Additionally, create a csv file in filepath if it doesn't exist
+# already that contains the contents of the appended dataframes
+# if the file already exists then read that file into a pandas dataframe 
+# and insert the new rows. The key for insertion is a column called 
+# id
+def merge_dataframes_with_transactions(df_list, filepath):
+    # Append all provided DataFrames
+    appended_df = pd.concat(df_list, ignore_index=False)
+    
+    # Check if the CSV file exists
+    if not os.path.isfile(filepath):
+        # If the file does not exist, write the concatenated DataFrame to CSV
+        appended_df.to_csv(filepath, index=True)
+    else:
+        # If the file exists, read the CSV into a DataFrame
+        existing_df = pd.read_csv(filepath).set_index('id')
+
+        # Identify columns that are in DataFrame B but not in DataFrame A
+        additional_columns = existing_df.columns.difference(appended_df.columns)
+
+        # Add missing columns to DataFrame A with null values
+        for column in additional_columns:
+            appended_df[column] = None
+
+        # Perform a left join to identify only the new entries
+        # perform the join using only the index of the two tables and a placeholder new column 
+        # in existing df so that I don't need to rename the columns because "_x" or "_y" was added
+        existing_df['const'] = 1
+        
+        # Perform an outer join on the 'id' column to prevent duplication of entries
+        # This assumes 'id' is unique for each transaction
+        updated_df = appended_df.merge(existing_df[['const']], left_index=True, right_index=True, how='left')
+        
+        # Filter rows from appended_df that are not in existing_df
+        new_entries = updated_df[updated_df['const'].isnull()]
+        
+        # Drop the temporary 'const' column
+        existing_df = existing_df.drop(columns=['const'])
+        new_entries = new_entries.drop(columns=['const'])
+        
+        # If there are new entries not present in the existing file, append them
+        if not new_entries.empty:
+            existing_df = existing_df.append(new_entries)
+            
+        # Write/overwrite the CSV file with the updated DataFrame
+        existing_df.to_csv(filepath, index=True)
+
 # Create a function that creates a colission free hash for each 
 # row in a dataframe based on all of its columns
 
 cleaned = clean_dataframes()
+merge_dataframes_with_transactions(cleaned, 'out/transactions.csv')
 print("stop")

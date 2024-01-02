@@ -109,8 +109,6 @@ def clean_bac_cc_stmt(dataframe: pd.DataFrame):
     # Multiply by -1 because expenses appear as positive
     data['amount'] = -1.0 * data['amount']
 
-    # Make the columns date and description the index of the dataframe
-    data = data.set_index(['date'])
 
     return data
 
@@ -147,7 +145,6 @@ def clean_bac_savings_stmt(dataframe: pd.DataFrame):
 
     # Drop unneeded columns
     data = data.drop(['Referencia', 'debitos', 'creditos', 'Balance'], axis=1)
-    data = data.set_index(['date'])
 
     return data
 
@@ -251,6 +248,7 @@ def create_hash_for_each_row(df):
     # Apply the hash_row function across the rows of the DataFrame
     # axis=1 specifies that the function should be applied on rows rather than columns
     df['id'] = df.apply(lambda row: hash_row(row), axis=1)
+    df = df.set_index('id')
     return df
 
 def clean_dataframes():

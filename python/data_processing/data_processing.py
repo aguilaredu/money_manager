@@ -54,7 +54,6 @@ def drop_null_or_empty_first_column(data:pd.DataFrame) -> pd.DataFrame:
     
     return data_cleaned
 
-import pandas as pd
 
 # Function to clean the specified columns in the dataframe
 def remove_unwanted_chars(df, columns):
@@ -109,6 +108,8 @@ def clean_bac_cc_stmt(dataframe: pd.DataFrame):
     # Multiply by -1 because expenses appear as positive
     data['amount'] = -1.0 * data['amount']
 
+    # Add a transaction type column. Since it is a credit card in theory it is always expense
+    data['tran_type'] = 'Exp.'
 
     return data
 
@@ -145,6 +146,10 @@ def clean_bac_savings_stmt(dataframe: pd.DataFrame):
 
     # Drop unneeded columns
     data = data.drop(['Referencia', 'debitos', 'creditos', 'Balance'], axis=1)
+
+    # Add a transaction type column. This simplistic logic is added here. We will address more complex issues about this later in the code
+    # Right now this assumption is enough. 
+    data['tran_type'] = np.where(data['amount'] < 0, 'Exp.', 'Income') 
 
     return data
 
@@ -232,14 +237,15 @@ def classify_and_transform_dataframe(df):
     # Call the corresponding transformation function
     return transformation_mapping[df_type](df)
 
-def hash_row(row):
+def hash_row_fields(row):
     # Create a hash object using sha256
     hash_object = hashlib.sha256()
     
-    # Iterate over the items in the row and update the hash object with the
-    # string representation of each item, converting it to bytes.
-    for item in row:
-        hash_object.update(str(item).encode())
+    # Iterate over the contents of each row included in the rows_hash list and encode them. Only these rows contribute to the hash
+    cols_to_hash = ['date', 'description', 'amount']
+
+    for col in cols_to_hash:
+        hash_object.update(str(row[col]).encode())
         
     # Return the hexadecimal digest of the hash object
     return hash_object.hexdigest()
@@ -247,7 +253,7 @@ def hash_row(row):
 def create_hash_for_each_row(df):
     # Apply the hash_row function across the rows of the DataFrame
     # axis=1 specifies that the function should be applied on rows rather than columns
-    df['id'] = df.apply(lambda row: hash_row(row), axis=1)
+    df['id'] = df.apply(lambda row: hash_row_fields(row), axis=1)
     df = df.set_index('id')
     return df
 
@@ -256,9 +262,33 @@ def clean_dataframes():
     clean_dataframes = []
     for dataframe in dataframes:
         data = classify_and_transform_dataframe(dataframe)
+        # Add the extra columns that we need and are not populated by default
+        data['vendor'] = np.nan
+        data['notes'] = np.nan
+        data['category'] = np.nan
+        
         clean_dataframes.append(create_hash_for_each_row(data))
-    
+                
     return clean_dataframes
+
+def hash_blank_transactions(df: pd.DataFrame) -> pd.DataFrame:
+    """Takes in the existing transactions DataFrames and hashes the rows that do not have a hash already. Some entries might be 
+    manually added to the table in Excel and might not have a hash yet.
+
+    Args:
+        df (pd.DataFrame): A DataFrame containing the transaction from the historical ledger,
+
+    Returns:
+        pd.DataFrame: A DataFrame where the null values in the id column has an assigned hash 
+    """
+    
+    # This dataset is not going to get big enough for this lamda function to work all over again on rows that were already hashed. 
+    # So we just do it for every row indeed.
+
+    df = create_hash_for_each_row
+
+
+    return df
 
 # Create a function that appends all dataframes in df list. 
 # Additionally, create a csv file in filepath if it doesn't exist
@@ -277,6 +307,8 @@ def merge_dataframes_with_transactions(df_list, filepath):
     else:
         # If the file exists, read the CSV into a DataFrame
         existing_df = pd.read_csv(filepath).set_index('id')
+
+        existing_df = create_hash_for_each_row(existing_df)
 
         # Identify columns that are in DataFrame B but not in DataFrame A
         additional_columns = existing_df.columns.difference(appended_df.columns)

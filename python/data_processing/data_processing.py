@@ -2,7 +2,7 @@ import pandas as pd
 import os
 import numpy as np
 import hashlib
-
+import openpyxl
 # Define a function to read a CSV file from a relative or absolute path and return a DataFrame with all columns as strings
 def read_csv_file(file_path):
     """
@@ -86,6 +86,9 @@ def clean_bac_cc_stmt(dataframe: pd.DataFrame):
     # if data["Monto Lempiras"] == np.nan then "HNL" ELSE "USD"
     data['currency'] = np.where(data["Monto lempiras"].isna(), "USD", "HNL")
 
+    # Add the exchange rate. Right now it is hardcoded # TODO: USE AN API LATER 
+    data['exchange_rate'] = np.where(data["currency"] == "USD", 24.8, 1.0)
+
     # Coalesce the two columns "Monto lempiras" and "Monto dólares"
     data['amount'] = data['Monto lempiras'].fillna(data['Monto dólares'])
 
@@ -109,7 +112,7 @@ def clean_bac_cc_stmt(dataframe: pd.DataFrame):
     data['amount'] = -1.0 * data['amount']
 
     # Add a transaction type column. Since it is a credit card in theory it is always expense
-    data['tran_type'] = 'Exp.'
+    data['tran_type'] = 'Expense'
 
     return data
 
@@ -133,7 +136,7 @@ def clean_bac_savings_stmt(dataframe: pd.DataFrame):
     # Convert the 'date' column to a datetime object with the specified format
     data['date'] = pd.to_datetime(data['date'], format='%d/%m/%Y')
 
-    # Convert the 'amount' column to a decimal with two decimal points
+    # Convert the 'debitos' and 'creditos' column to a decimal with two decimal points
     data['debitos'] = data['debitos'].astype(float).round(2)
     data['creditos'] = data['creditos'].astype(float).round(2)
 
@@ -142,14 +145,18 @@ def clean_bac_savings_stmt(dataframe: pd.DataFrame):
     data['debitos'] = -1.0 * data['debitos']
 
     # Coalesce the two columns
-    data['amount'] = data['debitos'].fillna(data['creditos'])
+    data['amount'] = np.where((data['debitos'] == 0.00) | (data['debitos'].isnull()), data['creditos'], data['debitos'])
+    # data['amount'] = data['debitos'].fillna(data['creditos'])
 
     # Drop unneeded columns
     data = data.drop(['Referencia', 'debitos', 'creditos', 'Balance'], axis=1)
 
     # Add a transaction type column. This simplistic logic is added here. We will address more complex issues about this later in the code
     # Right now this assumption is enough. 
-    data['tran_type'] = np.where(data['amount'] < 0, 'Exp.', 'Income') 
+    data['tran_type'] = np.where(data['amount'] < 0, 'Expense', 'Income') 
+
+    # Add the exchange rate. Right now it is hardcoded
+    data['exchange_rate'] = np.where(data["currency"] == "USD", 24.8, 1.0)
 
     return data
 
@@ -202,10 +209,10 @@ def combine_csv_files_by_columns(directory):
 def get_account_currency(filename):
     # Define a function to act as a 'switch' based on account name
     cases = {
-        'Dolares BAC 911': 'USD',
-        'Main BAC': 'HNL',
-        'Dolares BAC 021': 'USD',
-        'Debito BAC': 'HNL'
+        'BAC USD 911': 'USD',
+        'BAC HNL 271': 'HNL',
+        'BAC USD 021': 'USD',
+        'BAC HNL 971': 'HNL'
     }
     return cases.get(filename, 'UNKNOWN')
 
@@ -241,8 +248,9 @@ def hash_row_fields(row):
     # Create a hash object using sha256
     hash_object = hashlib.sha256()
     
-    # Iterate over the contents of each row included in the rows_hash list and encode them. Only these rows contribute to the hash
-    cols_to_hash = ['date', 'description', 'amount']
+    # Iterate over the contents of each row included in the rows_hash list and encode them. 
+    # Only these columns contribute to the hash
+    cols_to_hash = ['date', 'description', 'amount', 'account_name']
 
     for col in cols_to_hash:
         hash_object.update(str(row[col]).encode())
@@ -306,7 +314,7 @@ def merge_dataframes_with_transactions(df_list, filepath):
         appended_df.to_csv(filepath, index=True)
     else:
         # If the file exists, read the CSV into a DataFrame
-        existing_df = pd.read_csv(filepath).set_index('id')
+        existing_df = pd.read_excel(filepath, index_col=0, sheet_name='transactions')
 
         existing_df = create_hash_for_each_row(existing_df)
 
@@ -335,14 +343,15 @@ def merge_dataframes_with_transactions(df_list, filepath):
         
         # If there are new entries not present in the existing file, append them
         if not new_entries.empty:
-            existing_df = existing_df.append(new_entries)
-            
-        # Write/overwrite the CSV file with the updated DataFrame
-        existing_df.to_csv(filepath, index=True)
+            all_entries = existing_df.append(new_entries)
+            with pd.ExcelWriter(filepath, engine='openpyxl', mode='a', if_sheet_exists='replace') as writer:
+                all_entries.to_excel(writer, sheet_name='transactions', index=True, header=True)
+
+# existing_df.to_csv(filepath, index=True)
 
 # Create a function that creates a colission free hash for each 
 # row in a dataframe based on all of its columns
 
 cleaned = clean_dataframes()
-merge_dataframes_with_transactions(cleaned, 'out/transactions.csv')
+merge_dataframes_with_transactions(cleaned, 'out/transactions.xlsx')
 print("stop")

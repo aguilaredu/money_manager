@@ -2,7 +2,9 @@ import pandas as pd
 import os
 import numpy as np
 import hashlib
-import openpyxl
+from openpyxl import load_workbook
+from openpyxl.utils.dataframe import dataframe_to_rows
+
 # Define a function to read a CSV file from a relative or absolute path and return a DataFrame with all columns as strings
 def read_csv_file(file_path):
     """
@@ -314,44 +316,24 @@ def merge_dataframes_with_transactions(df_list, filepath):
         appended_df.to_csv(filepath, index=True)
     else:
         # If the file exists, read the CSV into a DataFrame
-        existing_df = pd.read_excel(filepath, index_col=0, sheet_name='transactions')
+        existing_transactions = pd.read_csv(filepath, index_col=0)
 
-        existing_df = create_hash_for_each_row(existing_df)
-
-        # Identify columns that are in DataFrame B but not in DataFrame A
-        additional_columns = existing_df.columns.difference(appended_df.columns)
-
-        # Add missing columns to DataFrame A with null values
-        for column in additional_columns:
-            appended_df[column] = None
-
-        # Perform a left join to identify only the new entries
-        # perform the join using only the index of the two tables and a placeholder new column 
-        # in existing df so that I don't need to rename the columns because "_x" or "_y" was added
-        existing_df['const'] = 1
+        # Some rows might not have a hash because they were manually input in the csv file
+        existing_transactions = create_hash_for_each_row(existing_transactions)
         
-        # Perform an outer join on the 'id' column to prevent duplication of entries
-        # This assumes 'id' is unique for each transaction
-        updated_df = appended_df.merge(existing_df[['const']], left_index=True, right_index=True, how='left')
+        # Perform a left join to identify new records since the bank statement exports can contain records already in the existing
+        # transactions. Add a placeholder column with a constant value to perform the join without pandas
+        # adding _x and _y to the output column names because both dataframes have the same column names.
+        existing_transactions.loc[:, 'placeholder'] = 1
+        new_transactions = appended_df\
+                .merge(existing_transactions[['placeholder']], left_index=True, right_index=True, how='left')\
+                .drop(['placeholder'], axis=1)\
+                .sort_values(by=['date'], ascending=False)
         
-        # Filter rows from appended_df that are not in existing_df
-        new_entries = updated_df[updated_df['const'].isnull()]
-        
-        # Drop the temporary 'const' column
-        existing_df = existing_df.drop(columns=['const'])
-        new_entries = new_entries.drop(columns=['const'])
-        
-        # If there are new entries not present in the existing file, append them
-        if not new_entries.empty:
-            all_entries = existing_df.append(new_entries)
-            with pd.ExcelWriter(filepath, engine='openpyxl', mode='a', if_sheet_exists='replace') as writer:
-                all_entries.to_excel(writer, sheet_name='transactions', index=True, header=True)
+        all_transactions = pd.concat([existing_transactions, new_transactions])
 
-# existing_df.to_csv(filepath, index=True)
-
-# Create a function that creates a colission free hash for each 
-# row in a dataframe based on all of its columns
+        all_transactions.to_csv(filepath, index=True)
 
 cleaned = clean_dataframes()
-merge_dataframes_with_transactions(cleaned, 'out/transactions.xlsx')
+merge_dataframes_with_transactions(cleaned, 'out/transactions.csv')
 print("stop")

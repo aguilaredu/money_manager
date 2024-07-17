@@ -1,0 +1,26 @@
+{
+    "account_configs": {
+        "account_currencies": {
+            "BAC USD 911": "USD",
+            "BAC HNL 271": "HNL",
+            "BAC USD 021": "USD",
+            "BAC HNL 971": "HNL"
+        },
+
+        "account_types": {
+            "BAC ECONOMIA": "credit_card",
+            "BAC USD 911": "savings",
+            "BAC HNL 271": "savings",
+            "BAC USD 021": "savings",
+            "BAC HNL 971": "savings"
+        }, 
+
+        "account_banks": {
+            "BAC ECONOMIA": "BAC",
+            "BAC USD 911": "BAC",
+            "BAC HNL 271": "BAC",
+            "BAC USD 021": "BAC",
+            "BAC HNL 971": "BAC"
+        }
+    }
+}

@@ -1,6 +1,6 @@
 import os
 from utils import load_config
-from transformations_bac import TransformationsBac
+from python.bac_transformer import TransformationsBac
 
 
 def main():

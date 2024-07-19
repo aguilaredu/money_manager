@@ -3,7 +3,7 @@ from pandas_utils import drop_null_or_empty_rows, remove_unwanted_chars, replace
 import numpy as np
 import os
 
-class TransformationsBac:
+class BacTransformer:
     def __init__(self, account_configs: dict, in_folder_path: str) -> None:
         """Initialize TransformationsBac with account configurations and folder path.
 

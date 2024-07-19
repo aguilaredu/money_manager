@@ -1,0 +1,27 @@
+{
+    "BAC ECONOMIA": {
+        "currency": "USD/HNL",
+        "bank": "BAC",
+        "type": "credit_card"
+    },
+    "BAC USD 911": {
+        "currency": "USD",
+        "bank": "BAC",
+        "type": "savings"
+    },
+    "BAC USD 021": {
+        "currency": "USD",
+        "bank": "BAC",
+        "type": "savings"
+    },
+    "BAC HNL 271": {
+        "currency": "HNL",
+        "bank": "BAC",
+        "type": "savings"
+    },
+    "BAC HNL 971": {
+        "currency": "HNL",
+        "bank": "BAC",
+        "type": "savings"
+    }
+}

@@ -246,7 +246,7 @@ def classify_and_transform_dataframe(df):
     # Call the corresponding transformation function
     return transformation_mapping[df_type](df)
 
-def hash_row_fields(row):
+def hash_row_fields(row: pd.DataFrame.row):
     # Create a hash object using sha256
     hash_object = hashlib.sha256()
     

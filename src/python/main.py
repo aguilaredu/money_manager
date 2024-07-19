@@ -1,24 +1,20 @@
 import os
-from utils import load_config
-from python.bac_transformer import TransformationsBac
-
-
+from processor import Processor
+import pandas as pd
+from existing_transactions import ExistingTransactions
 def main():
     # Get the directory of the configs file 
     script_dir = os.path.dirname(os.path.abspath(__file__))
     base_dir = os.path.dirname(os.path.dirname(script_dir))
-    configs_dir = os.path.join(base_dir, 'configs', 'configs.json')
+    configs_dir = os.path.join(base_dir, 'configs')
 
-    # Configurations
-    configs = load_config(configs_dir)
-    account_configs = configs['account_configs']
-    in_folder_path = os.path.join(base_dir, 'data/in')
-    out_folder_path = os.path.join(base_dir, 'data/out')
-
-    # Create a bac transformations object
-    testing_file_path = os.path.join(in_folder_path, 'BAC USD 021.csv')
-    bac_transformations = TransformationsBac(account_configs, in_folder_path)
-    test = bac_transformations.clean_savings_account_statement(csv_path = testing_file_path)
+    # Test transformations class
+    processor = Processor(base_dir=base_dir)
+    transactions = processor.get_processed_data()
+    
+    existing_transactions = ExistingTransactions(base_dir)
+    existing_transactions.build_output_path()
+    transactions.to_csv(existing_transactions.get_output_path())
 
 
 

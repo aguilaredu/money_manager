@@ -57,3 +57,13 @@ def replace_empty_string_with_nan(df: DataFrame, columns: list) -> DataFrame:
         df_copy[column] = df_copy[column].replace(r'^\s*$', np.nan, regex=True)
 
     return df_copy
+
+def clean_column_values(df):
+    # Clean all string columns in a DataFrame
+    
+    # Define a lambda function that replaces multiple whitespaces with a single space
+    # and strips leading and trailing whitespaces
+    clean_str = lambda x: ' '.join(str(x).split()) if isinstance(x, str) else x
+    
+    # Apply this function to every element of the DataFrame (assuming it's a string)
+    return df.applymap(clean_str)

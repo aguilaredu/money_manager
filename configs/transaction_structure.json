@@ -1,0 +1,16 @@
+{
+    "structure": {
+        "id": "string",
+        "date": "datetime64[ns]",
+        "account_name": "string",
+        "description": "string",
+        "category": "string",
+        "notes": "string",
+        "currency": "string",
+        "amount": "float64",
+        "tran_type": "string",
+        "exchange_rate": "float64",
+        "vendor": "string"
+    },
+    "cols_to_hash": ["date", "description", "amount", "account_name"]
+}

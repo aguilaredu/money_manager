@@ -14,7 +14,8 @@ def main():
     
     existing_transactions = ExistingTransactions(base_dir)
     existing_transactions.build_output_path()
-    transactions.to_csv(existing_transactions.get_output_path())
+    transactions.to_csv(existing_transactions.get_output_path(), encoding="utf_8_sig")
+    print('Completed successfuly')
 
 
 

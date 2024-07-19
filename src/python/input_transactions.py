@@ -1,6 +1,6 @@
 from utils import load_config, get_out_file_path
 from pandas import DataFrame, read_csv
-import os
+import os, shutil
 
 class InputTransactions:
     def __init__(self, base_dir: str) -> None:
@@ -14,6 +14,17 @@ class InputTransactions:
         self.out_file_path = get_out_file_path(base_dir, configs["path_configs"]["out_file_path"])
         self.classified_dataframes = {}
         self.existing_transactions = None
+
+    def clear_input_directory(self) -> None:
+        for filename in os.listdir(self.in_folder_path):
+            file_path = os.path.join(self.in_folder_path, filename)
+            try:
+                if os.path.isfile(file_path) or os.path.islink(file_path):
+                    os.unlink(file_path)
+                elif os.path.isdir(file_path):
+                    shutil.rmtree(file_path)
+            except Exception as e:
+                print('Failed to delete %s. Reason: %s' % (file_path, e))
 
     def get_classified_dataframes(self):
         self.read_and_classify_bank_statements()

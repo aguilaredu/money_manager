@@ -2,6 +2,7 @@ import os
 from processor import Processor
 import pandas as pd
 from existing_transactions import ExistingTransactions
+from input_transactions import InputTransactions
 def main():
     # Get the directory of the configs file 
     script_dir = os.path.dirname(os.path.abspath(__file__))
@@ -15,6 +16,11 @@ def main():
     existing_transactions = ExistingTransactions(base_dir)
     existing_transactions.build_output_path()
     transactions.to_csv(existing_transactions.get_output_path(), encoding="utf_8_sig")
+
+    # Delete input files
+    input_transactions = InputTransactions(base_dir)
+    input_transactions.clear_input_directory()
+
     print('Completed successfuly')
 
 

@@ -9,7 +9,7 @@ class FileProcessor:
         self.in_folder_path = in_folder_path
         self.classified_files = {}
 
-    def read_csv(self, file_path: str) -> pd.DataFrame:
+    def read_csv(self, file_path: str) -> DataFrame:
         try:
             return read_csv(file_path)
         except Exception as e:

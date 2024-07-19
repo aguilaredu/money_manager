@@ -46,5 +46,5 @@ class Processor():
                 .sort_values(by=['date'], ascending=False)\
                 .drop(['placeholder'], axis=1)
         
-        self.existing_transactions.drop(['placeholder'], axis=1)
+        self.existing_transactions.drop(['placeholder'], axis=1, inplace=True)
         self.processed_data = pd.concat([self.existing_transactions, new_valid_transactions])

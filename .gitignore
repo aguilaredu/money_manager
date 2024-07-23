@@ -3,7 +3,7 @@ data
 .vscode
 src/python/__pycache__
 # Ignore all files in the config folder
-config/
+secrets/
 
 # Allow tracking of .example files
-!config/*.example
+!secrets/*.example

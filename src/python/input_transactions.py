@@ -3,7 +3,7 @@ from pandas import DataFrame, read_csv
 import os, shutil
 
 class InputTransactions:
-    def __init__(self, base_dir: str) -> None:
+    def __init__(self, base_dir: str, clear_input_dir = False) -> None:
         configs_dir = os.path.join(base_dir, 'configs')
         accounts_attributes_path = os.path.join(configs_dir, 'accounts.json') 
         configs_path = os.path.join(configs_dir, 'configs.json') 
@@ -14,17 +14,22 @@ class InputTransactions:
         self.out_file_path = get_out_file_path(base_dir, configs["path_configs"]["out_file_path"])
         self.classified_dataframes = {}
         self.existing_transactions = None
+        self.clear_input_dir = clear_input_dir
 
     def clear_input_directory(self) -> None:
-        for filename in os.listdir(self.in_folder_path):
-            file_path = os.path.join(self.in_folder_path, filename)
-            try:
-                if os.path.isfile(file_path) or os.path.islink(file_path):
-                    os.unlink(file_path)
-                elif os.path.isdir(file_path):
-                    shutil.rmtree(file_path)
-            except Exception as e:
-                print('Failed to delete %s. Reason: %s' % (file_path, e))
+        if self.clear_input_dir:
+            print("Input directory files will be deleted.")
+            for filename in os.listdir(self.in_folder_path):
+                file_path = os.path.join(self.in_folder_path, filename)
+                try:
+                    if os.path.isfile(file_path) or os.path.islink(file_path):
+                        os.unlink(file_path)
+                    elif os.path.isdir(file_path):
+                        shutil.rmtree(file_path)
+                except Exception as e:
+                    print('Failed to delete %s. Reason: %s' % (file_path, e))
+        else:
+            print("Input directory was not cleaned. Either clean manually or set clean_input_dir parameter to 'True'")
 
     def get_classified_dataframes(self):
         self.read_and_classify_bank_statements()

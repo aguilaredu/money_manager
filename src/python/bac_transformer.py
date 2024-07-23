@@ -1,11 +1,13 @@
-from pandas import DataFrame, read_csv, to_datetime, to_numeric, concat
-from pandas_utils import drop_null_or_empty_rows, remove_unwanted_chars, replace_empty_string_with_nan, clean_column_values
+from pandas import DataFrame, read_csv, to_datetime, to_numeric, concat, merge
+from pandas_utils import (drop_null_or_empty_rows, remove_unwanted_chars,
+                          replace_empty_string_with_nan, clean_column_values,
+                          fill_missing_exchange_rates)
 import numpy as np
 import os
 from utils import load_config
 from dataframe_hasher import DataFrameHasher
 class BacTransformer:
-    def __init__(self, df_dict: dict, base_dir) -> None:
+    def __init__(self, df_dict: dict, base_dir: str) -> None:
         """Initialize TransformationsBac with account configurations and folder path.
 
         Args:
@@ -57,6 +59,7 @@ class BacTransformer:
             .assign(amount=lambda df: df['amount'].astype(float).round(2))
             .assign(amount=lambda df: df['amount'] * -1.0)
             .assign(tran_type=lambda df: 'Expense')
+            .assign(exchange_rate=lambda df: np.NaN)
             .assign(account_name=lambda df: account_name)
             .drop(['monto_lempiras', 'monto_dolares'], axis=1))
 
@@ -101,6 +104,7 @@ class BacTransformer:
             .assign(debits=lambda df: df['debits'] * -1.0)
             .assign(amount=lambda df: np.where((df['debits'] == 0.00) | (df['debits'].isnull()), df['credits'], df['debits']))
             .assign(tran_type=lambda df: np.where(df['amount'] < 0, 'Expense', 'Income'))
+            .assign(exchange_rate=lambda df: np.NaN)
             .assign(currency=lambda df: currency)
             .assign(account_name=lambda df: account_name)
             .drop(['Referencia', 'debits', 'credits', 'Balance'], axis=1))

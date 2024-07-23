@@ -1,4 +1,4 @@
-from pandas import DataFrame, to_numeric
+from pandas import DataFrame, to_datetime, merge
 import numpy as np 
 def drop_null_or_empty_rows(df: DataFrame, col_index: int) -> DataFrame:
     """
@@ -67,3 +67,22 @@ def clean_column_values(df):
     
     # Apply this function to every element of the DataFrame (assuming it's a string)
     return df.applymap(clean_str)
+
+def fill_missing_exchange_rates(dataframe, date_col, exchange_rate_dataframe, correction_factor = 1.02):
+
+    if exchange_rate_dataframe is None:
+        return dataframe
+
+    # Rename the exchange rate column in the new dataframe to prevent column duplication
+    exchange_rate_dataframe = exchange_rate_dataframe.rename("exchange_rate_new")
+
+    out_df = (merge(dataframe, exchange_rate_dataframe, left_on=[date_col], right_index=True)
+              .assign(exchange_rate_new=lambda df: df['exchange_rate_new'].astype(float)*correction_factor)
+              .assign(exchange_rate=lambda df: np.where(df["exchange_rate"].isna(), df["exchange_rate_new"], 
+                                       df["exchange_rate"]))
+              .assign(exchange_rate=lambda df: df["exchange_rate"].fillna(method='ffill'))
+              .assign(exchange_rate=lambda df: df['exchange_rate'].astype(float).round(2))
+              .drop(['exchange_rate_new'], axis=1))
+    
+
+    return out_df

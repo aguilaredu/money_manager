@@ -8,7 +8,7 @@ import pandas as pd
 class Processor():
     def __init__(self, base_dir) -> None:
         self.base_dir = base_dir
-        self.existing_transaction = pd.DataFrame()
+        self.existing_transactions = pd.DataFrame()
         self.new_transactions = pd.DataFrame()
         self.processed_data = pd.DataFrame()
         self.exchange_rate_df = None

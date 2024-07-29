@@ -76,7 +76,7 @@ def fill_missing_exchange_rates(dataframe, date_col, exchange_rate_dataframe, co
     # Rename the exchange rate column in the new dataframe to prevent column duplication
     exchange_rate_dataframe = exchange_rate_dataframe.rename("exchange_rate_new")
 
-    out_df = (merge(dataframe, exchange_rate_dataframe, left_on=[date_col], right_index=True)
+    out_df = (merge(dataframe, exchange_rate_dataframe, left_on=[date_col], right_index=True, how='left')
               .assign(exchange_rate_new=lambda df: df['exchange_rate_new'].astype(float)*correction_factor)
               .assign(exchange_rate=lambda df: np.where(df["exchange_rate"].isna(), df["exchange_rate_new"], 
                                        df["exchange_rate"]))

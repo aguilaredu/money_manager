@@ -3,6 +3,7 @@ from existing_transactions import ExistingTransactions
 from bac_transformer import BacTransformer
 from exchange_rate import ExchangeRates
 from pandas_utils import fill_missing_exchange_rates
+from duplicate_remover import DuplicateRemover
 import pandas as pd
 
 class Processor():
@@ -21,8 +22,15 @@ class Processor():
         # Read the existing transactions
         self.existing_transactions = ExistingTransactions(self.base_dir).get_existing_transactions()
         self.apply_transformation_to_inputs()
+        self.remove_duplicates()
         self.join_existing_with_new_transactions()
         self.apply_exchange_rates()
+
+    def remove_duplicates(self):
+        duplicate_remover = DuplicateRemover(self.existing_transactions, self.new_transactions)
+        duplicate_remover.remove_duplicates()
+        self.existing_transactions = duplicate_remover.updated_existing_transactions
+        self.new_transactions = duplicate_remover.updated_new_transactions
     
     def apply_exchange_rates(self):
         self.get_exchange_rate_df()

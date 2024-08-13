@@ -27,10 +27,8 @@ class Processor():
         self.apply_exchange_rates()
 
     def remove_duplicates(self):
-        duplicate_remover = DuplicateRemover(self.existing_transactions, self.new_transactions)
-        duplicate_remover.remove_duplicates()
-        self.existing_transactions = duplicate_remover.updated_existing_transactions
-        self.new_transactions = duplicate_remover.updated_new_transactions
+        duplicate_remover = DuplicateRemover(self.base_dir, self.existing_transactions, self.new_transactions)
+        self.existing_transactions = duplicate_remover.get_updated_existing_transactions()
     
     def apply_exchange_rates(self):
         self.get_exchange_rate_df()

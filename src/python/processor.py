@@ -1,6 +1,7 @@
 from input_transactions import InputTransactions
 from existing_transactions import ExistingTransactions
 from bac_transformer import BacTransformer
+from santander_transformer import SantanderTransformer
 from exchange_rate import ExchangeRates
 from pandas_utils import fill_missing_exchange_rates
 from duplicate_remover import DuplicateRemover
@@ -38,12 +39,13 @@ class Processor():
         input_transactions = InputTransactions(self.base_dir).get_classified_dataframes()
         dataframes = []
         bank_transformation_mapping = {
-            "BAC": BacTransformer
+            "BAC": BacTransformer,
+            "SANTANDER": SantanderTransformer
         }
 
         for bank in input_transactions:
             bank_transactions = input_transactions[bank]
-            dataframes.append(bank_transformation_mapping[bank](bank_transactions, self.base_dir).get_clean_bac_statements())
+            dataframes.append(bank_transformation_mapping[bank](bank_transactions, self.base_dir).get_clean_statements())
 
         self.new_transactions = pd.concat(dataframes)
 

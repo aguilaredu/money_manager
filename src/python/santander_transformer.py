@@ -6,7 +6,7 @@ import numpy as np
 import os
 from utils import load_config
 from dataframe_hasher import DataFrameHasher
-class BacTransformer:
+class SantanderTransformer:
     def __init__(self, df_dict: dict, base_dir: str) -> None:
         """Initialize TransformationsBac with account configurations and folder path.
 
@@ -24,47 +24,6 @@ class BacTransformer:
         self.processed_transactions = DataFrame()        
         self.transaction_structure = load_config(transaction_structure_path)
 
-
-    def clean_credit_card_statement(self, df: DataFrame, account_name: str):
-        """Clean and transform a credit card statement CSV file.
-
-        Args:
-            csv_path (str): Path to the CSV file containing credit card statement data.
-
-        Returns:
-            DataFrame: Cleaned and transformed DataFrame containing financial transactions.
-        """
-
-        # Dictionary that contains column renames 
-        rename_dict = {
-            'Fecha': 'date',
-            'Monto lempiras': 'monto_lempiras',
-            'Monto dólares': 'monto_dolares',
-            'Concepto': 'description'
-        }
-        
-        # Intake the DataFrame from a path and rename columns 
-        raw_df: DataFrame = df.rename(columns=rename_dict)
-
-        # Apply transformation functions 
-        clean_df: DataFrame = (raw_df
-            .pipe(drop_null_or_empty_rows, col_index = 0)
-            .pipe(remove_unwanted_chars, columns = ["monto_lempiras", "monto_dolares"])
-            .pipe(replace_empty_string_with_nan, columns = ["monto_lempiras", "monto_dolares"])
-            .pipe(clean_column_values)
-            .assign(currency=lambda df: np.where(df["monto_lempiras"].isna(), "USD", "HNL"))
-            .assign(date=lambda df: to_datetime(df['date'], format='%d/%m/%Y'))
-            .assign(amount=lambda df: df['monto_lempiras'].fillna(df['monto_dolares']))
-            .assign(amount=lambda df: to_numeric(df['amount'], errors='coerce'))
-            .assign(amount=lambda df: df['amount'].astype(float).round(2))
-            .assign(amount=lambda df: df['amount'] * -1.0)
-            .assign(tran_type=lambda df: 'Expense')
-            .assign(exchange_rate=lambda df: np.nan)
-            .assign(account_name=lambda df: account_name)
-            .drop(['monto_lempiras', 'monto_dolares'], axis=1))
-
-        return clean_df 
-
     def clean_savings_account_statement(self, account_name: str, df: DataFrame) -> DataFrame:
         """
         Clean and transform a savings account statement CSV file.
@@ -75,13 +34,12 @@ class BacTransformer:
         Returns:
             DataFrame: Cleaned and transformed DataFrame containing financial transactions.
         """
-
+        # NameError("name 'Index' is not defined")
         # Dictionary to rename columns 
         rename_dict = {
-            'Fecha': 'date',
-            'Descripción': 'description',
-            'Débitos': 'debits',
-            'Créditos': 'credits'
+            'FECHA OPERACIÓN': 'date',
+            'CONCEPTO': 'description',
+            'IMPORTE EUR': 'amount',
         }
         
         # Intake the DataFrame from a path and rename columns 
@@ -93,21 +51,17 @@ class BacTransformer:
         # Apply transformation functions 
         clean_df: DataFrame = (raw_df
             .pipe(drop_null_or_empty_rows, col_index = 0)
-            .pipe(remove_unwanted_chars, columns = ["debits", "credits"])
-            .pipe(replace_empty_string_with_nan, columns = ["debits", "credits"])
+            .pipe(remove_unwanted_chars, columns = ["amount"])
+            .pipe(replace_empty_string_with_nan, columns = ["amount"])
             .pipe(clean_column_values)
             .assign(date=lambda df: to_datetime(df['date'], format='%d/%m/%Y'))
-            .assign(debits=lambda df: to_numeric(df['debits'], errors='coerce'))
-            .assign(credits=lambda df: to_numeric(df['credits'], errors='coerce'))
-            .assign(debits=lambda df: df['debits'].astype(float).round(2))
-            .assign(credits=lambda df: df['credits'].astype(float).round(2))
-            .assign(debits=lambda df: df['debits'] * -1.0)
-            .assign(amount=lambda df: np.where((df['debits'] == 0.00) | (df['debits'].isnull()), df['credits'], df['debits']))
+            .assign(amount=lambda df: to_numeric(df['amount'], errors='coerce'))
+            .assign(amount=lambda df: df['amount'].astype(float).round(2))
             .assign(tran_type=lambda df: np.where(df['amount'] < 0, 'Expense', 'Income'))
             .assign(exchange_rate=lambda df: np.nan)
             .assign(currency=lambda df: currency)
             .assign(account_name=lambda df: account_name)
-            .drop(['Referencia', 'debits', 'credits', 'Balance'], axis=1))
+            .drop(['FECHA VALOR', 'SALDO'], axis=1))
 
         return clean_df
         
@@ -142,9 +96,7 @@ class BacTransformer:
             account_type = self.get_account_type(account_name) # Change to account name
 
             # Apply the correct transformation based on the account type
-            if account_type == 'credit_card':
-                clean_statement = self.clean_credit_card_statement(transaction_df, account_name)
-            elif account_type == 'savings':
+            if account_type == 'savings': 
                 clean_statement = self.clean_savings_account_statement(account_name, transaction_df)
             else:
                 raise KeyError(f'The account type {account_type} is not supported. Supported values for account type are {{credit_card, savings}}.')

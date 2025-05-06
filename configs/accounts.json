@@ -23,5 +23,10 @@
         "currency": "HNL",
         "bank": "BAC",
         "type": "savings"
+    },
+    "SANTANDER": {
+        "currency": "EUR",
+        "bank": "SANTANDER",
+        "type": "savings"
     }
 }

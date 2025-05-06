@@ -1,5 +1,5 @@
 from utils import load_config, get_out_file_path
-from pandas import DataFrame, read_csv
+from pandas import DataFrame, read_csv, read_excel
 import os, shutil
 
 class InputTransactions:
@@ -35,12 +35,16 @@ class InputTransactions:
         self.read_and_classify_bank_statements()
         return self.classified_dataframes
 
-    def read_csv(self, file_path: str) -> DataFrame:
+    def read_file(self, file_path: str) -> DataFrame:
         try:
-            return read_csv(file_path)
+            if file_path.endswith(('.xls', '.xlsx')):
+                return read_excel(file_path, skiprows=7) # Hardcoded skiprows to santander files
+            elif file_path.endswith('.csv'):
+                return read_csv(file_path)
+            else:
+                raise ValueError("Unsupported file format")
         except Exception as e:
-            print(f"Error reading {file_path}: {e}")
-            return DataFrame()
+            raise ValueError(f"Error reading {file_path}: {e}")
         
     def validate_account_configs(self, account_name: str) -> dict:
         if not(account_name in self.account_attributes):
@@ -54,9 +58,9 @@ class InputTransactions:
             filepath = os.path.join(self.in_folder_path, filename)
             
             # Check if it is a file and has a .csv extension
-            if os.path.isfile(filepath) and filename.endswith('.csv'):
-            # Read the CSV file and obtain its columns as a tuple
-                transactions = self.read_csv(filepath)
+            if os.path.isfile(filepath) and (filename.endswith('.csv') or filename.endswith('.xls')):
+                # Read the CSV file and obtain its columns as a tuple
+                transactions = self.read_file(filepath)
                 # Get the name of the account
                 account_name = self.get_account_name(filename)
                 # Get bank name

@@ -1,0 +1,11 @@
+.venv
+.filen.trash.local
+data
+.vscode
+src/python/__pycache__
+
+# Ignore all files in the config folder
+secrets/
+
+# Allow tracking of .example files
+!secrets/*.example

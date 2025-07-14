@@ -1,0 +1,6 @@
+{
+    "path_configs": {
+        "out_file_path": "data/out/transactions.csv",
+        "in_folder_path": "data/in/"
+    }
+}

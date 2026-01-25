@@ -57,13 +57,13 @@ class RevolutTransformer:
         clean_df: DataFrame = (raw_df
             .pipe(drop_null_or_empty_rows, col_index = 0)
             .pipe(clean_column_values)
-            .assign(date=lambda df: to_datetime(df['date'], format='%Y-%m-%d %H:%M:%S').dt.date)
+            .assign(date=lambda df: to_datetime(df['date'], format='%Y-%m-%d %H:%M:%S').dt.normalize())
             .assign(amount=lambda df: to_numeric(df['amount'], errors='coerce'))
             .assign(amount=lambda df: df['amount'].astype(float).round(2))
             .assign(tran_type=lambda df: np.where(df['amount'] < 0, 'Expense', 'Income'))
             .assign(currency=lambda df: currency)
             .assign(account_name=lambda df: account_name))
-
+    
         return clean_df
         
     def get_account_type(self, account_name: str) -> str:

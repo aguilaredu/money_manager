@@ -3,8 +3,6 @@ from existing_transactions import ExistingTransactions
 from transformer_bac import BacTransformer
 from transformer_santander import SantanderTransformer
 from transformer_revolut import RevolutTransformer
-from exchange_rate import ExchangeRates
-from pandas_utils import fill_missing_exchange_rates
 from duplicate_remover import DuplicateRemover
 import pandas as pd
 
@@ -14,7 +12,6 @@ class Processor():
         self.existing_transactions = pd.DataFrame()
         self.new_transactions = pd.DataFrame()
         self.processed_data = pd.DataFrame()
-        self.exchange_rate_df = None
 
     def get_processed_data(self):
         self.process_data()
@@ -46,12 +43,6 @@ class Processor():
 
         self.new_transactions = pd.concat(dataframes)
 
-    def get_exchange_rate_df(self):
-        try:
-            print("Getting exchange rate information from https://www.alphavantage.co.")
-            self.exchange_rate_df = ExchangeRates(self.base_dir).get_exchange_rate_dataframe()
-        except Exception as e:
-            print(f"Could not fetch exchange rates. Continuing execution. Error: {e}")
 
     def join_existing_with_new_transactions(self):
         
@@ -67,6 +58,6 @@ class Processor():
         
         self.existing_transactions.drop(['placeholder'], axis=1, inplace=True)
         if new_valid_transactions.empty:
-            self.process_data = self.existing_transactions
+            self.processed_data = self.existing_transactions
         else:
             self.processed_data = pd.concat([self.existing_transactions, new_valid_transactions])

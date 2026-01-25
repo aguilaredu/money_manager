@@ -20,7 +20,7 @@ def main():
     transactions.to_csv(existing_transactions.get_output_path(), encoding="utf_8_sig")
 
     # Delete input files
-    input_transactions = InputTransactions(base_dir, clear_input_dir=False)
+    input_transactions = InputTransactions(base_dir, clear_input_dir=True)
     input_transactions.clear_input_directory()
 
     print('Completed successfuly.')

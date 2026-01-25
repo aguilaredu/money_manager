@@ -19,6 +19,16 @@
         "bank": "BAC",
         "type": "savings"
     },
+    "BAC IAP 471": {
+        "currency": "USD",
+        "bank": "BAC",
+        "type": "savings"
+    },
+    "BAC IAP 491": {
+        "currency": "USD",
+        "bank": "BAC",
+        "type": "savings"
+    },
     "BAC HNL 971": {
         "currency": "HNL",
         "bank": "BAC",

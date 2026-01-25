@@ -1,7 +1,6 @@
 from pandas import DataFrame, read_csv, to_datetime, to_numeric, concat, merge
 from pandas_utils import (drop_null_or_empty_rows, remove_unwanted_chars,
-                          replace_empty_string_with_nan, clean_column_values,
-                          fill_missing_exchange_rates)
+                          replace_empty_string_with_nan, clean_column_values)
 import numpy as np
 import os
 from utils import load_config
@@ -103,7 +102,6 @@ class BacTransformer:
             .assign(debits=lambda df: df['debits'] * -1.0)
             .assign(amount=lambda df: np.where((df['debits'] == 0.00) | (df['debits'].isnull()), df['credits'], df['debits']))
             .assign(tran_type=lambda df: np.where(df['amount'] < 0, 'Expense', 'Income'))
-            .assign(exchange_rate=lambda df: np.nan)
             .assign(currency=lambda df: currency)
             .assign(account_name=lambda df: account_name)
             .drop(['Referencia', 'debits', 'credits', 'Balance'], axis=1))

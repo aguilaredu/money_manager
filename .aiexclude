@@ -1,0 +1,47 @@
+# --- Secrets & Sensitive Info ---
+.env
+.env.*
+*.env
+*.pem
+*.key
+secrets/
+data/
+credentials.json
+pip-log.txt
+
+# --- Python Environment & Build ---
+venv/
+.venv/
+env/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+build/
+dist/
+*.egg-info/
+.installed.cfg
+.pip-wheel-metadata/
+
+# --- Testing & Coverage ---
+.pytest_cache/
+.tox/
+.nox/
+.coverage
+htmlcov/
+.hypothesis/
+
+# --- Tools & IDEs ---
+.ipynb_checkpoints/
+.mypy_cache/
+.pytype/
+.ruff_cache/
+.vscode/
+.idea/
+
+# --- Data & Logs ---
+*.log
+*.sqlite
+*.db
+data/
+outputs/

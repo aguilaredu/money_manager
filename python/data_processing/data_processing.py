@@ -88,9 +88,6 @@ def clean_bac_cc_stmt(dataframe: pd.DataFrame):
     # if data["Monto Lempiras"] == np.nan then "HNL" ELSE "USD"
     data['currency'] = np.where(data["Monto lempiras"].isna(), "USD", "HNL")
 
-    # Add the exchange rate. Right now it is hardcoded # TODO: USE AN API LATER 
-    data['exchange_rate'] = np.where(data["currency"] == "USD", 24.8, 1.0)
-
     # Coalesce the two columns "Monto lempiras" and "Monto dólares"
     data['amount'] = data['Monto lempiras'].fillna(data['Monto dólares'])
 
@@ -156,9 +153,6 @@ def clean_bac_savings_stmt(dataframe: pd.DataFrame):
     # Add a transaction type column. This simplistic logic is added here. We will address more complex issues about this later in the code
     # Right now this assumption is enough. 
     data['tran_type'] = np.where(data['amount'] < 0, 'Expense', 'Income') 
-
-    # Add the exchange rate. Right now it is hardcoded
-    data['exchange_rate'] = np.where(data["currency"] == "USD", 24.8, 1.0)
 
     return data
 

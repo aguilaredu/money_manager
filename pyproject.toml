@@ -1,0 +1,19 @@
+[project]
+name = "money-manager"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "numpy>=2.4.1",
+    "pandas>=3.0.0",
+    "polars>=1.37.1",
+    "pydantic>=2.12.5",
+    "pydantic-settings>=2.12.0",
+    "xlrd>=2.0.2",
+]
+
+[dependency-groups]
+dev = [
+    "pandas-stubs>=2.3.3.260113",
+]

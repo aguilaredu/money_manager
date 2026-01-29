@@ -1,0 +1,14 @@
+{
+  "EXAMPLE CREDIT CARD": {
+    "currency": "USD/HNL",
+    "bank": "EXAMPLE_BANK",
+    "type": "credit_card",
+    "id_pattern": "EXAMPLE_PATTERN_CC"
+  },
+  "EXAMPLE SAVINGS": {
+    "currency": "USD",
+    "bank": "EXAMPLE_BANK",
+    "type": "savings",
+    "id_pattern": "EXAMPLE_PATTERN_SAVINGS"
+  }
+}

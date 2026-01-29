@@ -4,10 +4,9 @@ import numpy as np
 from pandas import DataFrame, to_datetime, to_numeric
 
 from money_manager.models.statement import Statement
-
-from ..utils import pandas_utils as pu
-from ..utils import utils as ut
-from ..utils.dataframe_hasher import DataFrameHasher
+from money_manager.utils import pandas_utils as pu
+from money_manager.utils import utils as ut
+from money_manager.utils.dataframe_hasher import DataFrameHasher
 
 
 class BacTransformer:

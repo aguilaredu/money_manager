@@ -12,3 +12,4 @@ class Statement:
     bank_name: str
     currency: str
     account_type: str
+    merged: bool

@@ -63,6 +63,7 @@ class BacTransformer:
             bank_name,
             currency,
             acc_type,
+            False,
         )
 
         print(f"success, parsed {clean_stmt_data.shape[0]} rows")
@@ -110,7 +111,7 @@ class BacTransformer:
             .assign(amount=lambda df: df["amount"] * -1.0)
             .assign(tran_type=lambda df: "Expense")
             .assign(account_name=lambda df: account_name)
-            .drop(["monto_lempiras", "monto_dolares"], axis=1)
+            .drop(["monto_lempiras", "monto_dolares", "Account Name"], axis=1)
         )
 
         # Hash the dataframe

@@ -1,14 +1,10 @@
 import json
 import os
-from typing import TypedDict, cast
+from pathlib import Path
 
 import pandas as pd
 
-
-class AppConfig(TypedDict):
-    input_dir: str
-    output_file: str
-    banks: list[str]
+from money_manager.models.statement import Statement
 
 
 def load_config(config_path: str) -> dict[str, dict[str, str]]:
@@ -137,3 +133,11 @@ def enforce_dataframe_schema(df, schema):
                 )
 
     return df
+
+
+def delete_inputs(statements: list[Statement]) -> None:
+    for statement in statements:
+        if statement.merged:
+            print(f"Deleting {statement.filename}")
+            path = Path(statement.filepath)
+            path.unlink(missing_ok=True)

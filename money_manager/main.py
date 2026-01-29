@@ -13,17 +13,13 @@ def main():
     base_dir = os.path.dirname(script_dir)
 
     # Process data
-    processor = Processor(base_dir=base_dir)
+    processor = Processor(base_dir=base_dir, delete_inputs=True)
     processor.process()
     ledger = processor.get_ledger()
 
     existing_transactions = Ledger(base_dir)
     existing_transactions.build_output_path()
     ledger.to_csv(existing_transactions.get_output_path(), encoding="utf_8_sig")
-
-    # Delete input files
-    input_transactions = Inputs(base_dir, clear_input_dir=False)
-    input_transactions.clear_input_directory()
 
     print(f"Success, ledger has {ledger.shape[0]} rows")
 

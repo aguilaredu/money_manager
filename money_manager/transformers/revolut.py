@@ -62,6 +62,7 @@ class RevolutTransformer:
             bank_name,
             currency,
             acc_type,
+            False,
         )
 
         print(f"success, parsed {clean_stmt_data.shape[0]} rows")

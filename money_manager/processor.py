@@ -4,15 +4,15 @@ from money_manager.existing_transactions import Ledger
 from money_manager.input_transactions import Inputs
 from money_manager.models.statement import Statement
 from money_manager.utils.merger import Merger
+from money_manager.utils.utils import delete_inputs
 
 
 class Processor:
-    def __init__(self, base_dir: str) -> None:
+    def __init__(self, base_dir: str, delete_inputs: bool = False) -> None:
         self.base_dir: str = base_dir
         self.ledger: DataFrame = DataFrame()
-        self.new_transactions: DataFrame = DataFrame()
-        self.processed_data: DataFrame = DataFrame()
         self.cleaned_statements: list[Statement] = []
+        self.delete_inputs: bool = delete_inputs
 
     def get_ledger(self):
         return self.ledger
@@ -38,8 +38,13 @@ class Processor:
             merger = Merger(self.base_dir, ledger, stmt_data)
             ledger = merger.get_clean_ledger()
             ledger = self.concat_statement(ledger, stmt_data)
+            stmt.merged = True
 
         self.ledger = ledger
+
+        # Delete the input files
+        if self.delete_inputs:
+            delete_inputs(clean_statements)
 
     def concat_statement(self, ledger: DataFrame, stmt: DataFrame):
         # Perform a left join to identify new records since the bank statement exports can contain records already in the existing

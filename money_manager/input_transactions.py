@@ -151,6 +151,7 @@ class Inputs:
                 acc_bank,
                 acc_currency,
                 acc_type,
+                False,
             )
             self.raw_statements.append(stmt)
 

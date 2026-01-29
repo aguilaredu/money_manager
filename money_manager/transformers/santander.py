@@ -73,7 +73,7 @@ class SantanderTransformer:
 
         return clean_stmt
 
-    def clean_cc(self, df: DataFrame, account_name: str) -> DataFrame:
+    def clean_cc(self, df: DataFrame, acc_name: str) -> DataFrame:
         """Clean and transform a credit card statement CSV file.
 
         Args:
@@ -83,8 +83,43 @@ class SantanderTransformer:
         Returns:
             DataFrame: Cleaned and transformed DataFrame.
         """
-        # Placeholder for Credit Card logic if needed in future
-        return df
+        # Dictionary to rename columns
+        rename_dict = {
+            "FECHA OPERACIÓN": "date",
+            "CONCEPTO": "description",
+            "IMPORTE EUR": "amount",
+        }
+
+        # Intake the DataFrame from a path and rename columns
+        df.columns = df.iloc[6]
+        raw_df: DataFrame = (
+            df.iloc[7:].reset_index(drop=True).rename(columns=rename_dict)
+        )
+        # Get the file name and based on this assign a currency. The mapping is in configs.json
+        currency = self.account_attributes[acc_name]["currency"]
+        # print(raw_df.iloc[6:].pipe(lambda d: d.rename(columns=d.iloc[0])))
+        # Apply transformation functions
+        clean_df: DataFrame = (
+            raw_df.pipe(drop_null_or_empty_rows, col_index=0)
+            .pipe(remove_unwanted_chars, columns=["amount"])
+            .pipe(replace_empty_string_with_nan, columns=["amount"])
+            .pipe(clean_column_values)
+            .assign(
+                date=lambda df: to_datetime(
+                    df["date"], format="%d/%m/%Y", errors="coerce"
+                )
+            )
+            .loc[lambda df: df["date"].notna()]
+            .assign(amount=lambda df: to_numeric(df["amount"], errors="coerce"))
+            .assign(amount=lambda df: df["amount"].astype(float).round(2))
+            .assign(
+                tran_type=lambda df: np.where(df["amount"] < 0, "Expense", "Transfer")
+            )
+            .assign(currency=lambda df: currency)
+            .assign(account_name=lambda df: acc_name)
+        )
+
+        return clean_df
 
     def clean_savings(
         self,

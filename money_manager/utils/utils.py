@@ -141,3 +141,19 @@ def delete_inputs(statements: list[Statement]) -> None:
             print(f"Deleting {statement.filename}")
             path = Path(statement.filepath)
             path.unlink(missing_ok=True)
+
+
+def get_tran_cols() -> list[str]:
+    # Implement this method in the future, right now it has hardcoded values
+    return [
+        "date",
+        "account_name",
+        "tran_type",
+        "category",
+        "tag",
+        "description",
+        "notes",
+        "currency",
+        "amount",
+        "id",
+    ]

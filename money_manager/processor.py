@@ -4,7 +4,7 @@ from money_manager.existing_transactions import Ledger
 from money_manager.input_transactions import Inputs
 from money_manager.models.statement import Statement
 from money_manager.utils.merger import Merger
-from money_manager.utils.utils import delete_inputs
+from money_manager.utils.utils import delete_inputs, get_tran_cols
 
 
 class Processor:
@@ -40,7 +40,10 @@ class Processor:
             ledger = self.concat_statement(ledger, stmt_data)
             stmt.merged = True
 
-        self.ledger = ledger
+        tran_cols = get_tran_cols()
+        self.ledger = ledger.sort_values(
+            by=["date", "account_name"], ascending=True
+        ).reset_index()[tran_cols]
 
         # Delete the input files
         if self.delete_inputs:

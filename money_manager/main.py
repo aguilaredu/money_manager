@@ -11,15 +11,15 @@ def main():
     # Get the directory of the configs file
     script_dir = os.path.dirname(os.path.abspath(__file__))
     base_dir = os.path.dirname(script_dir)
+    out_path = os.path.join(base_dir, "data/out/transactions.csv")
 
     # Process data
     processor = Processor(base_dir=base_dir, delete_inputs=True)
     processor.process()
     ledger = processor.get_ledger()
 
-    existing_transactions = Ledger(base_dir)
-    existing_transactions.build_output_path()
-    ledger.to_csv(existing_transactions.get_output_path(), encoding="utf_8_sig")
+    # Save
+    ledger.to_csv(out_path, encoding="utf_8_sig", index=False)
 
     print(f"Success, ledger has {ledger.shape[0]} rows")
 

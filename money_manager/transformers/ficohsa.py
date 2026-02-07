@@ -145,7 +145,7 @@ class FicohsaTransformer:
             .assign(account_name=lambda df: acc_name)
         )
         final_stmt: DataFrame = clean_df[
-            ["date", "account_name", "description", "amount", "tran_type"]
+            ["date", "account_name", "description", "amount", "tran_type", "currency"]
         ]
         return final_stmt
 

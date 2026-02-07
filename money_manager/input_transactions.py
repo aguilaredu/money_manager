@@ -84,7 +84,7 @@ class Inputs:
                 print("read success", end=" | ")
                 return df
             elif file_path.endswith(".csv"):
-                df = read_csv(file_path, encoding="cp1252")
+                df = read_csv(file_path)
                 print("read success", end=" | ")
                 return df
             else:

@@ -10,6 +10,7 @@ from pandas import (
 
 from money_manager.models.statement import Statement
 from money_manager.transformers.bac import BacTransformer
+from money_manager.transformers.ficohsa import FicohsaTransformer
 from money_manager.transformers.revolut import RevolutTransformer
 from money_manager.transformers.santander import SantanderTransformer
 from money_manager.utils.utils import get_out_file_path, load_config
@@ -64,6 +65,7 @@ class Inputs:
             "BAC": BacTransformer(self.base_dir),
             "SANTANDER": SantanderTransformer(self.base_dir),
             "REVOLUT": RevolutTransformer(self.base_dir),
+            "FICOHSA": FicohsaTransformer(self.base_dir),
         }
 
         for statement in self.raw_statements:
@@ -82,14 +84,14 @@ class Inputs:
                 print("read success", end=" | ")
                 return df
             elif file_path.endswith(".csv"):
-                df = read_csv(file_path)
+                df = read_csv(file_path, encoding="cp1252")
                 print("read success", end=" | ")
                 return df
             else:
                 print("read failure")
                 return None
-        except Exception:
-            print("failure")
+        except Exception as e:
+            print(f"failure {e}")
             return None
 
     def validate_account_configs(self, account_name: str):
@@ -121,7 +123,7 @@ class Inputs:
             # If more than 1 account is matched then the id process yields ambiguous results
             for curr_acc_name in self.acc_atts.keys():
                 id_pattern: str = self.acc_atts[curr_acc_name]["id_pattern"]
-                found_match: bool = self.identify_statement(stmt_data, id_pattern, 250)
+                found_match: bool = self.identify_statement(stmt_data, id_pattern, 400)
 
                 # If a match is found then break out of the loop
                 if found_match:

@@ -41,9 +41,7 @@ class Processor:
             stmt.merged = True
 
         tran_cols = get_tran_cols()
-        self.ledger = ledger.sort_values(
-            by=["date", "account_name"], ascending=True
-        ).reset_index()[tran_cols]
+        self.ledger = ledger.reset_index()[tran_cols]
 
         # Delete the input files
         if self.delete_inputs:

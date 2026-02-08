@@ -76,6 +76,14 @@ class Inputs:
             else:
                 print(f"No transformer found for bank: {statement.bank_name}")
 
+    def read_csv_with_fallback(self, file_path: str) -> DataFrame:
+        try:
+            # Try reading with default encoding
+            return read_csv(file_path)
+        except UnicodeDecodeError:
+            # If it fails, try with 'cp1252'
+            return read_csv(file_path, encoding="cp1252")
+
     def read_file(self, file_path: str) -> DataFrame | None:
         print(f"Reading {os.path.basename(file_path)}", end=" | ")
         try:
@@ -84,7 +92,7 @@ class Inputs:
                 print("read success", end=" | ")
                 return df
             elif file_path.endswith(".csv"):
-                df = read_csv(file_path)
+                df = self.read_csv_with_fallback(file_path)
                 print("read success", end=" | ")
                 return df
             else:
